@@ -1,23 +1,23 @@
 import React from "react";
 import { HashMap } from "react-move";
-import { BTreeDataType } from "../Helpers";
+import { BTreeDataType, BTreeNode } from "../Helpers";
 
 const barColour = "#348AA7";
 
 export interface BSTreeNodeProps {
   data: BTreeDataType;
   state: HashMap;
+  handleRemove: (node: BTreeNode) => void;
 }
 
 export const BSTreeNode: React.FC<BSTreeNodeProps> = (props) => {
-  const { data, state } = props;
+  const { data, state, handleRemove } = props;
   const radius = 20;
 
   return (
     <g
       className="bar-group"
       transform={`translate(${props.state.x}, ${props.state.y})`}
-      style={{ width: "20px" }}
     >
       <circle
         r={radius}
@@ -26,6 +26,10 @@ export const BSTreeNode: React.FC<BSTreeNodeProps> = (props) => {
         style={{
           fill: barColour,
           opacity: props.state.opacity
+        }}
+        onClick={(event) => {
+          event.preventDefault();
+          handleRemove(data.node);
         }}
       />
       <text

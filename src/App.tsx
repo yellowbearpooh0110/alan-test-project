@@ -5,7 +5,8 @@ import {
   BTree,
   BTreeDataType,
   getLayer,
-  getSequence
+  getSequence,
+  BTreeNode
 } from "./Helpers";
 import { BSTreeNode } from "./Components";
 import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -35,10 +36,9 @@ export default function App() {
     setData(btree.getAllNodes());
   };
 
-  const handleRemove = () => {};
-
-  const handleUpdate = () => {
-    // setData(getUpdatedData(data));
+  const handleRemove = (node: BTreeNode) => {
+    btree.removeNode(node);
+    setData(btree.getAllNodes());
   };
 
   const startTransition = (d: BTreeDataType) => {
@@ -87,17 +87,19 @@ export default function App() {
       <div>
         <div id="menu">
           <button onClick={handleAdd}>Add item</button>
-          <button onClick={handleRemove}>Remove item</button>
-          <button onClick={handleUpdate}>Update values</button>
         </div>
         <div
           style={{
-            width: 500,
+            width: "100%",
             height: 500,
-            overflow: "scroll"
+            overflow: "auto"
           }}
         >
-          <svg width={width + 100} height="2000" style={{ overflow: "scroll" }}>
+          <svg
+            width={width ? width + 100 : 100}
+            height={height ? height + 100 : 100}
+            style={{ overflow: "scroll" }}
+          >
             <g>
               <NodeGroup
                 data={data}
@@ -110,7 +112,7 @@ export default function App() {
                 {(nodes) => (
                   <g>
                     {nodes.map((props) => (
-                      <BSTreeNode {...props} />
+                      <BSTreeNode {...props} handleRemove={handleRemove} />
                     ))}
                   </g>
                 )}
