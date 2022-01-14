@@ -1,31 +1,30 @@
 export class BTreeNode {
-  constructor(value: number, index: number) {
+  constructor(value: number, index: number, position: number) {
     this.value = value;
     this.index = index;
+    this.position = position;
   }
   left: BTreeNode | null = null;
   right: BTreeNode | null = null;
   parent: BTreeNode | null = null;
+  position: number;
   value: number;
   index: number;
 }
-
-export type BTreeDataType = {
-  node: BTreeNode;
-  position: number;
-};
 
 export class BTree {
   constructor() {
     this.index = 0;
   }
+  private treeList: Array<BTreeNode> = [];
   private index: number;
   head: BTreeNode | null = null;
-  addNode(data: number): void {
-    const newNode = new BTreeNode(data, this.index++);
+  addNode(data: number): BTreeNode {
+    const newNode = new BTreeNode(data, this.index++, 1);
     if (this.head === null) {
       this.head = newNode;
-      return;
+      this.treeList.push(newNode);
+      return newNode;
     }
     let tmp: BTreeNode = this.head;
     let flag: boolean = true;
@@ -33,17 +32,21 @@ export class BTree {
       if (tmp.value <= data) {
         if (tmp.right === null) {
           tmp.right = newNode;
+          newNode.position = tmp.position * 2 + 1;
           newNode.parent = tmp;
           flag = false;
         } else tmp = tmp.right;
       } else {
         if (tmp.left === null) {
           tmp.left = newNode;
+          newNode.position = tmp.position * 2;
           newNode.parent = tmp;
           flag = false;
         } else tmp = tmp.left;
       }
     }
+    this.treeList.push(newNode);
+    return newNode;
   }
 
   removeNode(node: BTreeNode): void {
@@ -80,27 +83,44 @@ export class BTree {
               switchNode.right.parent = switchNode.parent.left;
           }
           switchNode.right = node.right;
+        } else {
+          this.repositionSubTree(switchNode.right, node.position * 2 + 1);
         }
+      }
+    } else {
+      if (switchNode !== null) {
+        this.repositionSubTree(switchNode.left, node.position * 2);
+        this.repositionSubTree(switchNode.right, node.position * 2 + 1);
       }
     }
 
-    if (switchNode !== null) switchNode.parent = node.parent;
+    if (switchNode !== null) {
+      switchNode.parent = node.parent;
+      switchNode.position = node.position;
+    }
+    this.treeList.splice(this.treeList.indexOf(node), 1);
   }
 
-  getAllNodes(): Array<BTreeDataType> {
-    return this.traverseNode(this.head, 1);
+  getAllNodes(): Array<BTreeNode> {
+    return this.treeList;
   }
 
-  private traverseNode(
-    node: BTreeNode | null,
-    position: number
-  ): Array<BTreeDataType> {
-    if (node === null) return [];
-    return [
-      ...this.traverseNode(node.left, position * 2),
-      { node, position: position },
-      ...this.traverseNode(node.right, position * 2 + 1)
-    ];
+  private repositionSubTree(node: BTreeNode | null, position: number): void {
+    const tmp: Array<BTreeNode> = [];
+    if (node === null) return;
+    node.position = position;
+    let ele: BTreeNode | undefined = node;
+    while (ele !== undefined) {
+      if (ele.left !== null) {
+        ele.left.position = ele.position * 2;
+        tmp.push(ele.left);
+      }
+      if (ele.right !== null) {
+        ele.right.position = ele.position * 2 + 1;
+        tmp.push(ele.right);
+      }
+      ele = tmp.shift();
+    }
   }
 }
 

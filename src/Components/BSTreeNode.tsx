@@ -1,11 +1,11 @@
 import React from "react";
 import { HashMap } from "react-move";
-import { BTreeDataType, BTreeNode } from "../Helpers";
+import { BTreeNode } from "../Helpers";
 
 const barColour = "#348AA7";
 
 export interface BSTreeNodeProps {
-  data: BTreeDataType;
+  data: BTreeNode;
   state: HashMap;
   handleRemove: (node: BTreeNode) => void;
 }
@@ -29,7 +29,7 @@ export const BSTreeNode: React.FC<BSTreeNodeProps> = (props) => {
         }}
         onClick={(event) => {
           event.preventDefault();
-          handleRemove(data.node);
+          handleRemove(data);
         }}
       />
       <text
@@ -40,7 +40,7 @@ export const BSTreeNode: React.FC<BSTreeNodeProps> = (props) => {
         alignmentBaseline="middle"
         style={{ opacity: state.opacity }}
       >
-        {data.node.value}
+        {data.value}
       </text>
     </g>
   );

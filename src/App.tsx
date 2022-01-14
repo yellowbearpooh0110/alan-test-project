@@ -1,18 +1,11 @@
 import NodeGroup from "react-move/NodeGroup";
 import "./styles.css";
-import {
-  RandomNum,
-  BTree,
-  BTreeDataType,
-  getLayer,
-  getSequence,
-  BTreeNode
-} from "./Helpers";
+import { RandomNum, BTree, getLayer, getSequence, BTreeNode } from "./Helpers";
 import { BSTreeNode } from "./Components";
-import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 
 export default function App() {
-  const [data, setData] = useState<Array<BTreeDataType>>([]);
+  const [data, setData] = useState<Array<BTreeNode>>([]);
   const { current: btree } = useRef<BTree>(new BTree());
 
   const layerHeight = 50;
@@ -23,57 +16,65 @@ export default function App() {
     return (Math.pow(2, getLayer(maxPosition)) - 1) * distance;
   }, [distance, data]);
 
-  const height = useMemo((): number => {
-    const maxPosition = Math.max(...data.map((item) => item.position));
-    return (getLayer(maxPosition) + 1) * layerHeight;
-  }, [layerHeight, data]);
+  // const height = useMemo((): number => {
+  //   const maxPosition = Math.max(...data.map((item) => item.position));
+  //   return (getLayer(maxPosition) + 1) * layerHeight;
+  // }, [layerHeight, data]);
 
   useEffect(() => {}, []);
 
-  const handleAdd = (event: MouseEvent) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     event.preventDefault();
-    btree.addNode(RandomNum());
-    setData(btree.getAllNodes());
+    if (event.keyCode === 32) {
+      const newNode = btree.addNode(RandomNum());
+      setData([...data, newNode]);
+    }
   };
 
   const handleRemove = (node: BTreeNode) => {
     btree.removeNode(node);
-    setData(btree.getAllNodes());
+    setData(data.filter((ele) => ele.index !== node.index));
   };
 
-  const startTransition = (d: BTreeDataType) => {
+  const startTransition = (d: BTreeNode) => {
     return {
       x:
+        500 +
         (width / Math.pow(2, getLayer(d.position) + 1)) *
-        (getSequence(d.position) * 2 + 1),
+          (getSequence(d.position) * 2 + 1) -
+        width / 2,
       y: getLayer(d.position) * layerHeight,
       opacity: 0
     };
   };
 
-  const enterTransition = (d: BTreeDataType) => {
+  const enterTransition = (d: BTreeNode) => {
     return {
       opacity: [1],
       timing: { duration: 250 }
     };
   };
 
-  const updateTransition = (d: BTreeDataType) => {
+  const updateTransition = (d: BTreeNode) => {
     return {
       x: [
-        (width / Math.pow(2, getLayer(d.position) + 1)) *
-          (getSequence(d.position) * 2 + 1)
+        500 +
+          (width / Math.pow(2, getLayer(d.position) + 1)) *
+            (getSequence(d.position) * 2 + 1) -
+          width / 2
       ],
       y: [getLayer(d.position) * layerHeight],
       timing: { duration: 300 }
     };
   };
 
-  const leaveTransition = (d: BTreeDataType, i: number) => {
+  const leaveTransition = (d: BTreeNode, i: number) => {
     return {
       x: [
-        (width / Math.pow(2, getLayer(d.position) + 1)) *
-          (getSequence(d.position) * 2 + 1)
+        500 +
+          (width / Math.pow(2, getLayer(d.position) + 1)) *
+            (getSequence(d.position) * 2 + 1) -
+          width / 2
       ],
       y: [-layerHeight],
       opacity: [0],
@@ -84,42 +85,31 @@ export default function App() {
   return (
     <div className="App">
       <h1>Alan Test Project</h1>
-      <div>
-        <div id="menu">
-          <button onClick={handleAdd}>Add item</button>
-        </div>
-        <div
-          style={{
-            width: "100%",
-            height: 500,
-            overflow: "auto"
-          }}
+      <div onKeyDown={handleKeyDown} tabIndex={0}>
+        <svg
+          width="100%"
+          style={{ border: "1px solid black" }}
+          viewBox={`0 0 1000 1000`}
         >
-          <svg
-            width={width ? width + 100 : 100}
-            height={height ? height + 100 : 100}
-            style={{ overflow: "scroll" }}
-          >
-            <g>
-              <NodeGroup
-                data={data}
-                keyAccessor={(data: BTreeDataType) => data.node.index}
-                start={startTransition}
-                enter={enterTransition}
-                update={updateTransition}
-                leave={leaveTransition}
-              >
-                {(nodes) => (
-                  <g>
-                    {nodes.map((props) => (
-                      <BSTreeNode {...props} handleRemove={handleRemove} />
-                    ))}
-                  </g>
-                )}
-              </NodeGroup>
-            </g>
-          </svg>
-        </div>
+          <g>
+            <NodeGroup
+              data={data}
+              keyAccessor={(data: BTreeNode) => data.index}
+              start={startTransition}
+              enter={enterTransition}
+              update={updateTransition}
+              leave={leaveTransition}
+            >
+              {(nodes) => (
+                <g>
+                  {nodes.map((props) => (
+                    <BSTreeNode {...props} handleRemove={handleRemove} />
+                  ))}
+                </g>
+              )}
+            </NodeGroup>
+          </g>
+        </svg>
       </div>
     </div>
   );
